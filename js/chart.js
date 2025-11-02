@@ -19,9 +19,9 @@ function renderPieChart(containerId, data, options) {
     }
 
     const containerWidth = container.offsetWidth || 400;
-    const width = Math.min(containerWidth, 500);
-    const height = Math.max(300, width * 0.7);
-    const radius = Math.min(width, height) / 2 - 20; // Leave 20px margin
+    const width = containerWidth;
+    const height = Math.min(400, width);  // Square aspect ratio, max 400px
+    const radius = Math.min(width, height) / 2 - 30; // Leave 30px margin
 
     // More varied color palette
     const colorPalettes = [
@@ -125,14 +125,13 @@ function renderPieChart(containerId, data, options) {
             }
         });
 
-    // Create legend with color-coded boxes
+    // Create legend with color-coded boxes - vertical layout for narrow cards
     const legendContainer = d3.select(`#${containerId}`)
         .append('div')
-        .style('margin-top', '20px')
+        .style('margin-top', '16px')
         .style('display', 'flex')
-        .style('flex-wrap', 'wrap')
-        .style('justify-content', 'center')
-        .style('gap', '12px');
+        .style('flex-direction', 'column')
+        .style('gap', '8px');
 
     data.forEach(d => {
         const total = d3.sum(data, item => item.count);
@@ -141,15 +140,15 @@ function renderPieChart(containerId, data, options) {
         const legendItem = legendContainer.append('div')
             .style('display', 'flex')
             .style('align-items', 'center')
-            .style('gap', '8px')
-            .style('padding', '6px 12px')
+            .style('gap', '10px')
+            .style('padding', '8px 10px')
             .style('background', '#f8f9fa')
             .style('border-radius', '6px')
-            .style('font-size', '13px');
+            .style('font-size', '14px');
 
         legendItem.append('div')
-            .style('width', '16px')
-            .style('height', '16px')
+            .style('width', '18px')
+            .style('height', '18px')
             .style('background', color(d.text))
             .style('border-radius', '3px')
             .style('flex-shrink', '0');
