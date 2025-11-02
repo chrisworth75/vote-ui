@@ -19,9 +19,9 @@ function renderPieChart(containerId, data, options) {
     }
 
     const containerWidth = container.offsetWidth || 400;
-    const width = containerWidth;
-    const height = Math.min(400, width);  // Square aspect ratio, max 400px
-    const radius = Math.min(width, height) / 2 - 30; // Leave 30px margin
+    const width = containerWidth * 0.6;  // 60% of container width
+    const height = width;  // Square aspect ratio
+    const radius = Math.min(width, height) / 2 - 20; // Leave 20px margin
 
     // More varied color palette
     const colorPalettes = [
