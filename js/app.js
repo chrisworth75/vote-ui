@@ -145,39 +145,51 @@ async function createPollCard(poll) {
     let html = `<h3>${poll.question}</h3>`;
 
     if (hasVoted) {
+        // User has voted - show results only
         html += `<div class="voted-indicator">You voted for: ${existingVote.option.optionLabel} - ${existingVote.option.optionText}</div>`;
+        html += `<div class="poll-stats">`;
+        html += `<h4>Live Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+        html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
+        html += `</div>`;
+        html += `<button class="change-vote-btn" data-poll-id="${poll.id}">Change Vote</button>`;
+    } else {
+        // User hasn't voted - show voting options
+        html += `<div class="poll-options">`;
+
+        poll.options.forEach(option => {
+            html += `
+                <div class="poll-option" data-option-id="${option.id}">
+                    <input type="radio"
+                           name="poll-${poll.id}"
+                           id="option-${option.id}"
+                           value="${option.id}">
+                    <label for="option-${option.id}">
+                        ${option.optionLabel}. ${option.optionText}
+                    </label>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        html += `<button class="vote-btn" data-poll-id="${poll.id}">Vote</button>`;
+        html += `<div class="poll-stats">`;
+        html += `<h4>Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+        html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
+        html += `</div>`;
     }
-
-    html += `<div class="poll-options">`;
-
-    poll.options.forEach(option => {
-        const isSelected = hasVoted && existingVote.option.id === option.id;
-        html += `
-            <div class="poll-option ${isSelected ? 'selected' : ''}" data-option-id="${option.id}">
-                <input type="radio"
-                       name="poll-${poll.id}"
-                       id="option-${option.id}"
-                       value="${option.id}"
-                       ${isSelected ? 'checked' : ''}>
-                <label for="option-${option.id}">
-                    ${option.optionLabel}. ${option.optionText}
-                </label>
-            </div>
-        `;
-    });
-
-    html += `</div>`;
-    html += `<button class="vote-btn" data-poll-id="${poll.id}">Vote</button>`;
-    html += `<div class="poll-stats">`;
-    html += `<h4>Results</h4>`;
-    html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
-    html += `</div>`;
 
     card.innerHTML = html;
 
     // Add event listeners
     const voteBtn = card.querySelector('.vote-btn');
-    voteBtn.addEventListener('click', () => handleVote(poll.id));
+    if (voteBtn) {
+        voteBtn.addEventListener('click', () => handleVote(poll.id));
+    }
+
+    const changeVoteBtn = card.querySelector('.change-vote-btn');
+    if (changeVoteBtn) {
+        changeVoteBtn.addEventListener('click', () => showVotingOptions(poll.id));
+    }
 
     const radioInputs = card.querySelectorAll('input[type="radio"]');
     radioInputs.forEach(input => {
@@ -194,7 +206,59 @@ async function createPollCard(poll) {
     // Load and render results
     await loadPollResults(poll.id);
 
+    // Start auto-refresh for this poll
+    startPollRefresh(poll.id);
+
     return card;
+}
+
+function showVotingOptions(pollId) {
+    const poll = polls.find(p => p.id === pollId);
+    const pollCard = document.getElementById(`poll-${pollId}`);
+
+    let html = `<h3>${poll.question}</h3>`;
+    html += `<div class="poll-options">`;
+
+    poll.options.forEach(option => {
+        html += `
+            <div class="poll-option" data-option-id="${option.id}">
+                <input type="radio"
+                       name="poll-${poll.id}"
+                       id="option-${option.id}"
+                       value="${option.id}">
+                <label for="option-${option.id}">
+                    ${option.optionLabel}. ${option.optionText}
+                </label>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    html += `<button class="vote-btn" data-poll-id="${poll.id}">Vote</button>`;
+    html += `<div class="poll-stats">`;
+    html += `<h4>Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+    html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
+    html += `</div>`;
+
+    pollCard.innerHTML = html;
+
+    // Re-add event listeners
+    const voteBtn = pollCard.querySelector('.vote-btn');
+    voteBtn.addEventListener('click', () => handleVote(poll.id));
+
+    const radioInputs = pollCard.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            const options = pollCard.querySelectorAll('.poll-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            const selectedOption = pollCard.querySelector(`[data-option-id="${e.target.value}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+        });
+    });
+
+    loadPollResults(poll.id);
 }
 
 async function handleVote(pollId) {
@@ -225,6 +289,9 @@ async function handleVote(pollId) {
     }
 }
 
+// Store refresh intervals
+const pollRefreshIntervals = {};
+
 async function loadPollResults(pollId) {
     try {
         const results = await api.getPollResults(pollId);
@@ -239,8 +306,35 @@ async function loadPollResults(pollId) {
             count: results[option.id] || 0
         }));
 
+        // Calculate total votes
+        const totalVotes = chartData.reduce((sum, option) => sum + option.count, 0);
+
+        // Update vote count display
+        const voteCountElement = document.getElementById(`vote-count-${pollId}`);
+        if (voteCountElement) {
+            voteCountElement.textContent = `(${totalVotes} ${totalVotes === 1 ? 'vote' : 'votes'})`;
+        }
+
         renderPieChart(`chart-${pollId}`, chartData);
     } catch (error) {
         console.error('Failed to load poll results:', error);
     }
+}
+
+function startPollRefresh(pollId) {
+    // Clear existing interval if any
+    if (pollRefreshIntervals[pollId]) {
+        clearInterval(pollRefreshIntervals[pollId]);
+    }
+
+    // Refresh every 3 seconds
+    pollRefreshIntervals[pollId] = setInterval(() => {
+        loadPollResults(pollId);
+    }, 3000);
+}
+
+function stopAllPollRefresh() {
+    Object.values(pollRefreshIntervals).forEach(interval => {
+        clearInterval(interval);
+    });
 }
