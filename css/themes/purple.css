@@ -1,0 +1,67 @@
+/* Purple Theme - Original Color Scheme */
+
+/* Body background with gradient */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Poll section heading */
+#polls-section h2 {
+    color: white;
+}
+
+/* Profile section headings */
+#profile-section h2,
+#profile-section h3 {
+    color: white;
+}
+
+/* Poll option styles */
+.poll-option {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.poll-option:hover {
+    border-color: #667eea !important;
+    background-color: #f8f9ff !important;
+}
+
+.poll-option.bg-light {
+    border-color: #667eea !important;
+    background-color: #f0f2ff !important;
+}
+
+/* Search result hover */
+.search-result-item:hover {
+    background-color: #f8f9ff;
+    color: #667eea;
+}
+
+/* Chart container */
+.chart-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.chart-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Profile stats with gradient */
+#profile-stats .card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+#profile-stats .card .text-muted {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Voting history cards with colored border */
+#voting-history .card {
+    border-left: 4px solid #667eea;
+}

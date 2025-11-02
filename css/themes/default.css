@@ -1,0 +1,33 @@
+/* Default Theme - Minimal Styling */
+
+/* Body background */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Poll option hover effect */
+.poll-option {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.poll-option:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Search result hover */
+.search-result-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Chart container */
+.chart-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.chart-container svg {
+    max-width: 100%;
+    height: auto;
+}

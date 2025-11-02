@@ -51,7 +51,7 @@ function setupEventListeners() {
         const query = e.target.value.trim();
 
         if (query.length < 2) {
-            searchResults.style.display = 'none';
+            searchResults.classList.add('d-none');
             return;
         }
 
@@ -64,7 +64,7 @@ function setupEventListeners() {
     // Hide search results when clicking outside
     document.addEventListener('click', (e) => {
         if (!userSearch.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.style.display = 'none';
+            searchResults.classList.add('d-none');
         }
     });
 }
@@ -129,26 +129,27 @@ function handleLogout() {
 
 function showMessage(message, type) {
     authMessage.textContent = message;
-    authMessage.className = `message ${type}`;
+    authMessage.className = type === 'error' ? 'alert alert-danger' : 'alert alert-success';
     setTimeout(() => {
         authMessage.textContent = '';
-        authMessage.className = 'message';
+        authMessage.className = '';
     }, 3000);
 }
 
 function showAuthSection() {
-    authSection.style.display = 'block';
-    pollsSection.style.display = 'none';
-    userInfo.style.display = 'none';
+    authSection.classList.remove('d-none');
+    pollsSection.classList.add('d-none');
+    profileSection.classList.add('d-none');
+    userInfo.classList.add('d-none');
     usernameInput.value = '';
 }
 
 async function showPollsSection() {
-    authSection.style.display = 'none';
-    pollsSection.style.display = 'block';
-    profileSection.style.display = 'none';
-    userInfo.style.display = 'flex';
-    pollsBtn.style.display = 'none';
+    authSection.classList.add('d-none');
+    pollsSection.classList.remove('d-none');
+    profileSection.classList.add('d-none');
+    userInfo.classList.remove('d-none');
+    pollsBtn.classList.add('d-none');
     usernameDisplay.textContent = currentUser.username;
 
     await loadPolls();
@@ -177,36 +178,38 @@ async function renderPolls() {
 }
 
 async function createPollCard(poll) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'col-md-6';
+
     const card = document.createElement('div');
-    card.className = 'poll-card';
+    card.className = 'card h-100';
     card.id = `poll-${poll.id}`;
 
     // Check if user already voted
     const existingVote = await api.getUserVote(currentUser.id, poll.id);
     const hasVoted = existingVote !== null;
 
-    let html = `<h3>${poll.question}</h3>`;
+    let html = `<div class="card-body">`;
+    html += `<h3 class="card-title h5">${poll.question}</h3>`;
 
     if (hasVoted) {
         // User has voted - show results only
-        html += `<div class="voted-indicator">You voted for: ${existingVote.option.optionText}</div>`;
-        html += `<div class="poll-stats">`;
-        html += `<h4>Live Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+        html += `<div class="alert alert-success mb-3">You voted for: ${existingVote.option.optionText}</div>`;
+        html += `<h4 class="h6">Live Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
         html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
-        html += `</div>`;
-        html += `<button class="change-vote-btn" data-poll-id="${poll.id}">Change Vote</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary mt-3 w-100" data-poll-id="${poll.id}">Change Vote</button>`;
     } else {
         // User hasn't voted - show voting options
-        html += `<div class="poll-options">`;
+        html += `<div class="mb-3">`;
 
         poll.options.forEach(option => {
             html += `
-                <div class="poll-option" data-option-id="${option.id}">
-                    <input type="radio"
+                <div class="form-check mb-2 p-2 border rounded poll-option" data-option-id="${option.id}">
+                    <input class="form-check-input" type="radio"
                            name="poll-${poll.id}"
                            id="option-${option.id}"
                            value="${option.id}">
-                    <label for="option-${option.id}">
+                    <label class="form-check-label" for="option-${option.id}">
                         ${option.optionText}
                     </label>
                 </div>
@@ -214,23 +217,22 @@ async function createPollCard(poll) {
         });
 
         html += `</div>`;
-        html += `<button class="vote-btn" data-poll-id="${poll.id}">Vote</button>`;
-        html += `<div class="poll-stats">`;
-        html += `<h4>Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+        html += `<button class="btn btn-primary w-100 mb-3" data-poll-id="${poll.id}">Vote</button>`;
+        html += `<h4 class="h6">Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
         html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
-        html += `</div>`;
     }
 
+    html += `</div>`;
     card.innerHTML = html;
 
     // Add event listeners
-    const voteBtn = card.querySelector('.vote-btn');
-    if (voteBtn) {
+    const voteBtn = card.querySelector('button[data-poll-id]');
+    if (voteBtn && voteBtn.textContent === 'Vote') {
         voteBtn.addEventListener('click', () => handleVote(poll.id));
     }
 
-    const changeVoteBtn = card.querySelector('.change-vote-btn');
-    if (changeVoteBtn) {
+    const changeVoteBtn = card.querySelector('button[data-poll-id]');
+    if (changeVoteBtn && changeVoteBtn.textContent === 'Change Vote') {
         changeVoteBtn.addEventListener('click', () => showVotingOptions(poll.id));
     }
 
@@ -238,32 +240,34 @@ async function createPollCard(poll) {
     radioInputs.forEach(input => {
         input.addEventListener('change', (e) => {
             const options = card.querySelectorAll('.poll-option');
-            options.forEach(opt => opt.classList.remove('selected'));
+            options.forEach(opt => opt.classList.remove('bg-light'));
             const selectedOption = card.querySelector(`[data-option-id="${e.target.value}"]`);
             if (selectedOption) {
-                selectedOption.classList.add('selected');
+                selectedOption.classList.add('bg-light');
             }
         });
     });
 
-    return card;
+    wrapper.appendChild(card);
+    return wrapper;
 }
 
 function showVotingOptions(pollId) {
     const poll = polls.find(p => p.id === pollId);
     const pollCard = document.getElementById(`poll-${pollId}`);
 
-    let html = `<h3>${poll.question}</h3>`;
-    html += `<div class="poll-options">`;
+    let html = `<div class="card-body">`;
+    html += `<h3 class="card-title h5">${poll.question}</h3>`;
+    html += `<div class="mb-3">`;
 
     poll.options.forEach(option => {
         html += `
-            <div class="poll-option" data-option-id="${option.id}">
-                <input type="radio"
+            <div class="form-check mb-2 p-2 border rounded poll-option" data-option-id="${option.id}">
+                <input class="form-check-input" type="radio"
                        name="poll-${poll.id}"
                        id="option-${option.id}"
                        value="${option.id}">
-                <label for="option-${option.id}">
+                <label class="form-check-label" for="option-${option.id}">
                     ${option.optionText}
                 </label>
             </div>
@@ -271,26 +275,25 @@ function showVotingOptions(pollId) {
     });
 
     html += `</div>`;
-    html += `<button class="vote-btn" data-poll-id="${poll.id}">Vote</button>`;
-    html += `<div class="poll-stats">`;
-    html += `<h4>Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
+    html += `<button class="btn btn-primary w-100 mb-3" data-poll-id="${poll.id}">Vote</button>`;
+    html += `<h4 class="h6">Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
     html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
     html += `</div>`;
 
     pollCard.innerHTML = html;
 
     // Re-add event listeners
-    const voteBtn = pollCard.querySelector('.vote-btn');
+    const voteBtn = pollCard.querySelector('button[data-poll-id]');
     voteBtn.addEventListener('click', () => handleVote(poll.id));
 
     const radioInputs = pollCard.querySelectorAll('input[type="radio"]');
     radioInputs.forEach(input => {
         input.addEventListener('change', (e) => {
             const options = pollCard.querySelectorAll('.poll-option');
-            options.forEach(opt => opt.classList.remove('selected'));
+            options.forEach(opt => opt.classList.remove('bg-light'));
             const selectedOption = pollCard.querySelector(`[data-option-id="${e.target.value}"]`);
             if (selectedOption) {
-                selectedOption.classList.add('selected');
+                selectedOption.classList.add('bg-light');
             }
         });
     });
@@ -377,10 +380,10 @@ function stopAllPollRefresh() {
 
 // Profile functions
 async function showProfileSection(userId) {
-    authSection.style.display = 'none';
-    pollsSection.style.display = 'none';
-    profileSection.style.display = 'block';
-    pollsBtn.style.display = 'inline-block';
+    authSection.classList.add('d-none');
+    pollsSection.classList.add('d-none');
+    profileSection.classList.remove('d-none');
+    pollsBtn.classList.remove('d-none');
     currentProfileUserId = userId;
 
     stopAllPollRefresh();
@@ -389,24 +392,25 @@ async function showProfileSection(userId) {
 
 function displaySearchResults(users) {
     if (users.length === 0) {
-        searchResults.innerHTML = '<div class="no-results">No users found</div>';
-        searchResults.style.display = 'block';
+        searchResults.innerHTML = '<div class="p-3 text-center text-muted fst-italic">No users found</div>';
+        searchResults.classList.remove('d-none');
         return;
     }
 
     searchResults.innerHTML = '';
     users.forEach(user => {
         const resultItem = document.createElement('div');
-        resultItem.className = 'search-result-item';
+        resultItem.className = 'p-2 border-bottom search-result-item';
+        resultItem.style.cursor = 'pointer';
         resultItem.textContent = user.username;
         resultItem.addEventListener('click', () => {
             userSearch.value = '';
-            searchResults.style.display = 'none';
+            searchResults.classList.add('d-none');
             showProfileSection(user.id);
         });
         searchResults.appendChild(resultItem);
     });
-    searchResults.style.display = 'block';
+    searchResults.classList.remove('d-none');
 }
 
 async function loadProfileData(userId) {
@@ -427,17 +431,29 @@ async function loadProfileData(userId) {
 
         // Display stats
         profileStats.innerHTML = `
-            <div class="stat-card">
-                <div class="stat-number">${totalVotes}</div>
-                <div class="stat-label">Total Votes</div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h2 class="display-4">${totalVotes}</h2>
+                        <p class="text-muted mb-0">Total Votes</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">${totalPolls}</div>
-                <div class="stat-label">Total Polls</div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h2 class="display-4">${totalPolls}</h2>
+                        <p class="text-muted mb-0">Total Polls</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">${votingRate}%</div>
-                <div class="stat-label">Participation Rate</div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h2 class="display-4">${votingRate}%</h2>
+                        <p class="text-muted mb-0">Participation Rate</p>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -446,7 +462,7 @@ async function loadProfileData(userId) {
             const message = isOwnProfile
                 ? 'You haven\'t voted on any polls yet.'
                 : `${user.username} hasn't voted on any polls yet.`;
-            votingHistory.innerHTML = `<p class="no-votes">${message}</p>`;
+            votingHistory.innerHTML = `<p class="text-center text-muted fst-italic py-5">${message}</p>`;
             return;
         }
 
@@ -454,18 +470,20 @@ async function loadProfileData(userId) {
 
         for (const vote of userVotes) {
             const historyCard = document.createElement('div');
-            historyCard.className = 'history-card';
+            historyCard.className = 'card mb-3';
 
             const poll = vote.poll;
             const option = vote.option;
 
             historyCard.innerHTML = `
-                <div class="history-poll-question">${poll.question}</div>
-                <div class="history-vote-choice">
-                    <span class="choice-label">${isOwnProfile ? 'Your' : 'Their'} choice:</span>
-                    <span class="choice-text">${option.optionText}</span>
+                <div class="card-body">
+                    <h5 class="card-title">${poll.question}</h5>
+                    <p class="mb-2">
+                        <span class="text-muted">${isOwnProfile ? 'Your' : 'Their'} choice:</span>
+                        <strong class="ms-2">${option.optionText}</strong>
+                    </p>
+                    <small class="text-muted">Voted on ${new Date(vote.votedAt).toLocaleDateString()}</small>
                 </div>
-                <div class="history-date">Voted on ${new Date(vote.votedAt).toLocaleDateString()}</div>
             `;
 
             votingHistory.appendChild(historyCard);
