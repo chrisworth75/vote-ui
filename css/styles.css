@@ -1,0 +1,238 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    color: #667eea;
+    font-size: 2rem;
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#username-display {
+    color: #667eea;
+}
+
+.auth-form {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+.auth-form h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.message.error {
+    background: #ffe6e6;
+    color: #d8000c;
+}
+
+.message.success {
+    background: #e6ffe6;
+    color: #008000;
+}
+
+#polls-section h2 {
+    color: white;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#polls-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 20px;
+}
+
+.poll-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.poll-card h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.poll-options {
+    margin-bottom: 20px;
+}
+
+.poll-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.poll-option:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.poll-option.selected {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.poll-option input[type="radio"] {
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.poll-option label {
+    cursor: pointer;
+    flex: 1;
+    font-size: 1rem;
+}
+
+.vote-btn {
+    width: 100%;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.vote-btn:hover {
+    background: #5568d3;
+}
+
+.vote-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.chart-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.chart-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.voted-indicator {
+    background: #e6ffe6;
+    color: #008000;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.poll-stats {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.poll-stats h4 {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
