@@ -10,13 +10,19 @@
 </head>
 <body>
     <div class="container py-4">
-        <header class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
+        <header class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm flex-wrap gap-3">
             <h1 class="h3 mb-0">Vote App</h1>
-            <div id="user-info" class="d-none">
-                <span class="me-3">Logged in as: <strong id="username-display"></strong></span>
-                <button id="profile-btn" class="btn btn-sm btn-outline-secondary">My Profile</button>
-                <button id="polls-btn" class="btn btn-sm btn-outline-secondary d-none">Polls</button>
-                <button id="logout-btn" class="btn btn-sm btn-outline-secondary">Logout</button>
+            <div class="d-flex align-items-center gap-2">
+                <select id="theme-selector" class="form-select form-select-sm" style="width: auto;">
+                    <option value="default">Default Theme</option>
+                    <option value="purple">Purple Theme</option>
+                </select>
+                <div id="user-info" class="d-none d-flex align-items-center gap-2">
+                    <span class="me-2">Logged in as: <strong id="username-display"></strong></span>
+                    <button id="profile-btn" class="btn btn-sm btn-outline-secondary">My Profile</button>
+                    <button id="polls-btn" class="btn btn-sm btn-outline-secondary d-none">Polls</button>
+                    <button id="logout-btn" class="btn btn-sm btn-outline-secondary">Logout</button>
+                </div>
             </div>
         </header>
 

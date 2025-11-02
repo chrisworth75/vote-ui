@@ -22,11 +22,30 @@ const userSearch = document.getElementById('user-search');
 const searchResults = document.getElementById('search-results');
 const profileTitle = document.getElementById('profile-title');
 const votingHistoryTitle = document.getElementById('voting-history-title');
+const themeSelector = document.getElementById('theme-selector');
 
 let currentProfileUserId = null;
 
+// Theme management
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    themeSelector.value = savedTheme;
+    applyTheme(savedTheme);
+}
+
+function changeTheme(theme) {
+    localStorage.setItem('theme', theme);
+    applyTheme(theme);
+}
+
+function applyTheme(theme) {
+    const themeLink = document.querySelector('link[href*="themes/"]');
+    themeLink.href = `css/themes/${theme}.css`;
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
     checkExistingSession();
     setupEventListeners();
 });
@@ -42,6 +61,10 @@ function setupEventListeners() {
         if (e.key === 'Enter') {
             handleLogin();
         }
+    });
+
+    themeSelector.addEventListener('change', (e) => {
+        changeTheme(e.target.value);
     });
 
     // User search with autocomplete
@@ -193,13 +216,13 @@ async function createPollCard(poll) {
     html += `<h3 class="card-title h5">${poll.question}</h3>`;
 
     if (hasVoted) {
-        // User has voted - show results only
+        // User has voted - show results only (no voting options)
         html += `<div class="alert alert-success mb-3">You voted for: ${existingVote.option.optionText}</div>`;
         html += `<h4 class="h6">Live Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
         html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
         html += `<button class="btn btn-sm btn-outline-secondary mt-3 w-100" data-poll-id="${poll.id}">Change Vote</button>`;
     } else {
-        // User hasn't voted - show voting options
+        // User hasn't voted - show voting options only (no results)
         html += `<div class="mb-3">`;
 
         poll.options.forEach(option => {
@@ -217,9 +240,7 @@ async function createPollCard(poll) {
         });
 
         html += `</div>`;
-        html += `<button class="btn btn-primary w-100 mb-3" data-poll-id="${poll.id}">Vote</button>`;
-        html += `<h4 class="h6">Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
-        html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
+        html += `<button class="btn btn-primary w-100" data-poll-id="${poll.id}">Vote</button>`;
     }
 
     html += `</div>`;
@@ -275,9 +296,7 @@ function showVotingOptions(pollId) {
     });
 
     html += `</div>`;
-    html += `<button class="btn btn-primary w-100 mb-3" data-poll-id="${poll.id}">Vote</button>`;
-    html += `<h4 class="h6">Current Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
-    html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
+    html += `<button class="btn btn-primary w-100" data-poll-id="${poll.id}">Vote</button>`;
     html += `</div>`;
 
     pollCard.innerHTML = html;
@@ -297,8 +316,6 @@ function showVotingOptions(pollId) {
             }
         });
     });
-
-    loadPollResults(poll.id);
 }
 
 async function handleVote(pollId) {
