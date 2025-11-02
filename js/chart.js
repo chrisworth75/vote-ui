@@ -3,6 +3,12 @@ function renderPieChart(containerId, data, options) {
     // Clear existing chart
     d3.select(`#${containerId}`).selectAll('*').remove();
 
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Chart container not found: ${containerId}`);
+        return;
+    }
+
     if (!data || data.length === 0) {
         d3.select(`#${containerId}`)
             .append('p')
@@ -12,7 +18,6 @@ function renderPieChart(containerId, data, options) {
         return;
     }
 
-    const container = document.getElementById(containerId);
     const containerWidth = container.offsetWidth || 400;
     const width = Math.min(containerWidth, 500);
     const height = Math.max(300, width * 0.7);

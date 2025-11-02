@@ -130,6 +130,10 @@ async function renderPolls() {
     for (const poll of polls) {
         const pollCard = await createPollCard(poll);
         pollsContainer.appendChild(pollCard);
+
+        // Now that card is in DOM, load results and start auto-refresh
+        await loadPollResults(poll.id);
+        startPollRefresh(poll.id);
     }
 }
 
@@ -202,12 +206,6 @@ async function createPollCard(poll) {
             }
         });
     });
-
-    // Load and render results
-    await loadPollResults(poll.id);
-
-    // Start auto-refresh for this poll
-    startPollRefresh(poll.id);
 
     return card;
 }
