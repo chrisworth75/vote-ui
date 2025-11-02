@@ -21,7 +21,7 @@ function renderPieChart(containerId, data, options) {
     const containerWidth = container.offsetWidth || 400;
     const width = Math.min(containerWidth, 500);
     const height = Math.max(300, width * 0.7);
-    const radius = Math.min(width, height) / 2.5;
+    const radius = Math.min(width, height) / 2 - 20; // Leave 20px margin
 
     // More varied color palette
     const colorPalettes = [
