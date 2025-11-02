@@ -146,7 +146,7 @@ async function createPollCard(poll) {
 
     if (hasVoted) {
         // User has voted - show results only
-        html += `<div class="voted-indicator">You voted for: ${existingVote.option.optionLabel} - ${existingVote.option.optionText}</div>`;
+        html += `<div class="voted-indicator">You voted for: ${existingVote.option.optionText}</div>`;
         html += `<div class="poll-stats">`;
         html += `<h4>Live Results <span class="vote-count" id="vote-count-${poll.id}"></span></h4>`;
         html += `<div class="chart-container" id="chart-${poll.id}"></div>`;
@@ -164,7 +164,7 @@ async function createPollCard(poll) {
                            id="option-${option.id}"
                            value="${option.id}">
                     <label for="option-${option.id}">
-                        ${option.optionLabel}. ${option.optionText}
+                        ${option.optionText}
                     </label>
                 </div>
             `;
@@ -227,7 +227,7 @@ function showVotingOptions(pollId) {
                        id="option-${option.id}"
                        value="${option.id}">
                 <label for="option-${option.id}">
-                    ${option.optionLabel}. ${option.optionText}
+                    ${option.optionText}
                 </label>
             </div>
         `;
@@ -301,7 +301,6 @@ async function loadPollResults(pollId) {
 
         // Transform results into chart data
         const chartData = poll.options.map(option => ({
-            label: option.optionLabel,
             text: option.optionText,
             count: results[option.id] || 0
         }));

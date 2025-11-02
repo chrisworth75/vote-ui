@@ -12,13 +12,23 @@ function renderPieChart(containerId, data, options) {
         return;
     }
 
-    const width = 300;
-    const height = 300;
-    const radius = Math.min(width, height) / 2;
+    const container = document.getElementById(containerId);
+    const containerWidth = container.offsetWidth || 400;
+    const width = Math.min(containerWidth, 500);
+    const height = Math.max(300, width * 0.7);
+    const radius = Math.min(width, height) / 2.5;
+
+    // More varied color palette
+    const colorPalettes = [
+        ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'],
+        ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#30cfd0'],
+        ['#f857a6', '#ff5858', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'],
+    ];
+    const palette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
     const color = d3.scaleOrdinal()
-        .domain(data.map(d => d.label))
-        .range(['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a']);
+        .domain(data.map(d => d.text))
+        .range(palette);
 
     const svg = d3.select(`#${containerId}`)
         .append('svg')
@@ -33,11 +43,11 @@ function renderPieChart(containerId, data, options) {
 
     const arc = d3.arc()
         .innerRadius(0)
-        .outerRadius(radius - 10);
+        .outerRadius(radius);
 
     const labelArc = d3.arc()
-        .innerRadius(radius - 60)
-        .outerRadius(radius - 60);
+        .innerRadius(radius * 0.6)
+        .outerRadius(radius * 0.6);
 
     const arcs = svg.selectAll('.arc')
         .data(pie(data))
@@ -47,51 +57,99 @@ function renderPieChart(containerId, data, options) {
 
     arcs.append('path')
         .attr('d', arc)
-        .attr('fill', d => color(d.data.label))
+        .attr('fill', d => color(d.data.text))
         .attr('stroke', 'white')
-        .attr('stroke-width', 2)
-        .style('opacity', 0.8)
-        .on('mouseover', function() {
+        .attr('stroke-width', 3)
+        .style('opacity', 0.9)
+        .on('mouseover', function(event, d) {
             d3.select(this)
                 .transition()
                 .duration(200)
+                .style('opacity', 1)
+                .attr('transform', 'scale(1.05)');
+
+            // Show tooltip
+            const tooltip = d3.select('#chart-tooltip');
+            if (tooltip.empty()) {
+                d3.select('body').append('div')
+                    .attr('id', 'chart-tooltip')
+                    .style('position', 'absolute')
+                    .style('background', 'rgba(0, 0, 0, 0.8)')
+                    .style('color', 'white')
+                    .style('padding', '8px 12px')
+                    .style('border-radius', '4px')
+                    .style('font-size', '14px')
+                    .style('pointer-events', 'none')
+                    .style('z-index', '1000');
+            }
+
+            const total = d3.sum(data, d => d.count);
+            const percentage = ((d.data.count / total) * 100).toFixed(1);
+
+            d3.select('#chart-tooltip')
+                .html(`<strong>${d.data.text}</strong><br/>${d.data.count} votes (${percentage}%)`)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px')
                 .style('opacity', 1);
         })
         .on('mouseout', function() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .style('opacity', 0.8);
+                .style('opacity', 0.9)
+                .attr('transform', 'scale(1)');
+
+            d3.select('#chart-tooltip').style('opacity', 0);
         });
 
+    // Add text labels directly on pie slices if there's enough room
     arcs.append('text')
         .attr('transform', d => `translate(${labelArc.centroid(d)})`)
         .attr('text-anchor', 'middle')
-        .attr('font-size', '14px')
-        .attr('font-weight', 'bold')
+        .attr('font-size', '13px')
+        .attr('font-weight', '600')
         .attr('fill', 'white')
-        .text(d => {
-            const percentage = ((d.data.count / d3.sum(data, d => d.count)) * 100).toFixed(1);
-            return `${d.data.label}: ${percentage}%`;
+        .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+        .each(function(d) {
+            const percentage = ((d.data.count / d3.sum(data, d => d.count)) * 100);
+            const text = d3.select(this);
+
+            // Only show label if slice is big enough (>8%)
+            if (percentage > 8) {
+                text.text(`${percentage.toFixed(0)}%`);
+            }
         });
 
-    // Legend
-    const legend = svg.selectAll('.legend')
-        .data(data)
-        .enter()
-        .append('g')
-        .attr('class', 'legend')
-        .attr('transform', (d, i) => `translate(${radius + 20}, ${-radius + i * 25})`);
+    // Create legend with color-coded boxes
+    const legendContainer = d3.select(`#${containerId}`)
+        .append('div')
+        .style('margin-top', '20px')
+        .style('display', 'flex')
+        .style('flex-wrap', 'wrap')
+        .style('justify-content', 'center')
+        .style('gap', '12px');
 
-    legend.append('rect')
-        .attr('width', 18)
-        .attr('height', 18)
-        .style('fill', d => color(d.label));
+    data.forEach(d => {
+        const total = d3.sum(data, item => item.count);
+        const percentage = total > 0 ? ((d.count / total) * 100).toFixed(1) : 0;
 
-    legend.append('text')
-        .attr('x', 24)
-        .attr('y', 9)
-        .attr('dy', '.35em')
-        .style('font-size', '12px')
-        .text(d => `${d.label}: ${d.text} (${d.count})`);
+        const legendItem = legendContainer.append('div')
+            .style('display', 'flex')
+            .style('align-items', 'center')
+            .style('gap', '8px')
+            .style('padding', '6px 12px')
+            .style('background', '#f8f9fa')
+            .style('border-radius', '6px')
+            .style('font-size', '13px');
+
+        legendItem.append('div')
+            .style('width', '16px')
+            .style('height', '16px')
+            .style('background', color(d.text))
+            .style('border-radius', '3px')
+            .style('flex-shrink', '0');
+
+        legendItem.append('span')
+            .html(`<strong>${d.text}</strong>: ${d.count} (${percentage}%)`);
+    });
 }
