@@ -65,4 +65,9 @@ const api = {
             return null;
         }
     },
+
+    async getAllUserVotes(userId) {
+        const response = await fetch(`${API_BASE_URL}/votes/user/${userId}`);
+        return response.json();
+    },
 };

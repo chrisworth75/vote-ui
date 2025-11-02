@@ -5,14 +5,19 @@ let polls = [];
 // DOM Elements
 const authSection = document.getElementById('auth-section');
 const pollsSection = document.getElementById('polls-section');
+const profileSection = document.getElementById('profile-section');
 const userInfo = document.getElementById('user-info');
 const usernameDisplay = document.getElementById('username-display');
 const usernameInput = document.getElementById('username-input');
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const profileBtn = document.getElementById('profile-btn');
+const pollsBtn = document.getElementById('polls-btn');
 const authMessage = document.getElementById('auth-message');
 const pollsContainer = document.getElementById('polls-container');
+const votingHistory = document.getElementById('voting-history');
+const profileStats = document.getElementById('profile-stats');
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,6 +29,8 @@ function setupEventListeners() {
     loginBtn.addEventListener('click', handleLogin);
     registerBtn.addEventListener('click', handleRegister);
     logoutBtn.addEventListener('click', handleLogout);
+    profileBtn.addEventListener('click', showProfileSection);
+    pollsBtn.addEventListener('click', showPollsSection);
 
     usernameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -109,7 +116,9 @@ function showAuthSection() {
 async function showPollsSection() {
     authSection.style.display = 'none';
     pollsSection.style.display = 'block';
+    profileSection.style.display = 'none';
     userInfo.style.display = 'flex';
+    pollsBtn.style.display = 'none';
     usernameDisplay.textContent = currentUser.username;
 
     await loadPolls();
@@ -334,4 +343,73 @@ function stopAllPollRefresh() {
     Object.values(pollRefreshIntervals).forEach(interval => {
         clearInterval(interval);
     });
+}
+
+// Profile functions
+async function showProfileSection() {
+    authSection.style.display = 'none';
+    pollsSection.style.display = 'none';
+    profileSection.style.display = 'block';
+    pollsBtn.style.display = 'inline-block';
+
+    stopAllPollRefresh();
+    await loadProfileData();
+}
+
+async function loadProfileData() {
+    try {
+        const userVotes = await api.getAllUserVotes(currentUser.id);
+        const allPolls = await api.getAllPolls();
+
+        // Calculate stats
+        const totalVotes = userVotes.length;
+        const totalPolls = allPolls.length;
+        const votingRate = totalPolls > 0 ? ((totalVotes / totalPolls) * 100).toFixed(1) : 0;
+
+        // Display stats
+        profileStats.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-number">${totalVotes}</div>
+                <div class="stat-label">Total Votes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${totalPolls}</div>
+                <div class="stat-label">Total Polls</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${votingRate}%</div>
+                <div class="stat-label">Participation Rate</div>
+            </div>
+        `;
+
+        // Display voting history
+        if (userVotes.length === 0) {
+            votingHistory.innerHTML = '<p class="no-votes">You haven\'t voted on any polls yet.</p>';
+            return;
+        }
+
+        votingHistory.innerHTML = '';
+
+        for (const vote of userVotes) {
+            const historyCard = document.createElement('div');
+            historyCard.className = 'history-card';
+
+            const poll = vote.poll;
+            const option = vote.option;
+
+            historyCard.innerHTML = `
+                <div class="history-poll-question">${poll.question}</div>
+                <div class="history-vote-choice">
+                    <span class="choice-label">Your choice:</span>
+                    <span class="choice-text">${option.optionText}</span>
+                </div>
+                <div class="history-date">Voted on ${new Date(vote.votedAt).toLocaleDateString()}</div>
+            `;
+
+            votingHistory.appendChild(historyCard);
+        }
+    } catch (error) {
+        console.error('Failed to load profile data:', error);
+        votingHistory.innerHTML = '<p class="error">Failed to load voting history.</p>';
+    }
 }

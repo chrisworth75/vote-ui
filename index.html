@@ -13,6 +13,8 @@
             <h1>Vote App</h1>
             <div id="user-info" style="display: none;">
                 <span>Logged in as: <strong id="username-display"></strong></span>
+                <button id="profile-btn" class="btn btn-secondary">My Profile</button>
+                <button id="polls-btn" class="btn btn-secondary" style="display: none;">Polls</button>
                 <button id="logout-btn" class="btn btn-secondary">Logout</button>
             </div>
         </header>
@@ -34,6 +36,14 @@
         <div id="polls-section" style="display: none;">
             <h2>Active Polls</h2>
             <div id="polls-container"></div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile-section" style="display: none;">
+            <h2>My Profile</h2>
+            <div id="profile-stats" class="profile-stats"></div>
+            <h3>My Voting History</h3>
+            <div id="voting-history"></div>
         </div>
     </div>
 
