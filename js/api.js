@@ -70,4 +70,14 @@ const api = {
         const response = await fetch(`${API_BASE_URL}/votes/user/${userId}`);
         return response.json();
     },
+
+    async searchUsers(query) {
+        const response = await fetch(`${API_BASE_URL}/users/search?query=${encodeURIComponent(query)}`);
+        return response.json();
+    },
+
+    async getUserById(userId) {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`);
+        return response.json();
+    },
 };

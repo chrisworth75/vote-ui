@@ -18,6 +18,12 @@ const authMessage = document.getElementById('auth-message');
 const pollsContainer = document.getElementById('polls-container');
 const votingHistory = document.getElementById('voting-history');
 const profileStats = document.getElementById('profile-stats');
+const userSearch = document.getElementById('user-search');
+const searchResults = document.getElementById('search-results');
+const profileTitle = document.getElementById('profile-title');
+const votingHistoryTitle = document.getElementById('voting-history-title');
+
+let currentProfileUserId = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,12 +35,36 @@ function setupEventListeners() {
     loginBtn.addEventListener('click', handleLogin);
     registerBtn.addEventListener('click', handleRegister);
     logoutBtn.addEventListener('click', handleLogout);
-    profileBtn.addEventListener('click', showProfileSection);
+    profileBtn.addEventListener('click', () => showProfileSection(currentUser.id));
     pollsBtn.addEventListener('click', showPollsSection);
 
     usernameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             handleLogin();
+        }
+    });
+
+    // User search with autocomplete
+    let searchTimeout;
+    userSearch.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            const users = await api.searchUsers(query);
+            displaySearchResults(users);
+        }, 300);
+    });
+
+    // Hide search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!userSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
         }
     });
 }
@@ -346,20 +376,49 @@ function stopAllPollRefresh() {
 }
 
 // Profile functions
-async function showProfileSection() {
+async function showProfileSection(userId) {
     authSection.style.display = 'none';
     pollsSection.style.display = 'none';
     profileSection.style.display = 'block';
     pollsBtn.style.display = 'inline-block';
+    currentProfileUserId = userId;
 
     stopAllPollRefresh();
-    await loadProfileData();
+    await loadProfileData(userId);
 }
 
-async function loadProfileData() {
+function displaySearchResults(users) {
+    if (users.length === 0) {
+        searchResults.innerHTML = '<div class="no-results">No users found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+
+    searchResults.innerHTML = '';
+    users.forEach(user => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        resultItem.textContent = user.username;
+        resultItem.addEventListener('click', () => {
+            userSearch.value = '';
+            searchResults.style.display = 'none';
+            showProfileSection(user.id);
+        });
+        searchResults.appendChild(resultItem);
+    });
+    searchResults.style.display = 'block';
+}
+
+async function loadProfileData(userId) {
     try {
-        const userVotes = await api.getAllUserVotes(currentUser.id);
+        const user = await api.getUserById(userId);
+        const userVotes = await api.getAllUserVotes(userId);
         const allPolls = await api.getAllPolls();
+
+        // Update profile title
+        const isOwnProfile = userId === currentUser.id;
+        profileTitle.textContent = isOwnProfile ? 'My Profile' : `${user.username}'s Profile`;
+        votingHistoryTitle.textContent = isOwnProfile ? 'My Voting History' : 'Voting History';
 
         // Calculate stats
         const totalVotes = userVotes.length;
@@ -384,7 +443,10 @@ async function loadProfileData() {
 
         // Display voting history
         if (userVotes.length === 0) {
-            votingHistory.innerHTML = '<p class="no-votes">You haven\'t voted on any polls yet.</p>';
+            const message = isOwnProfile
+                ? 'You haven\'t voted on any polls yet.'
+                : `${user.username} hasn't voted on any polls yet.`;
+            votingHistory.innerHTML = `<p class="no-votes">${message}</p>`;
             return;
         }
 
@@ -400,7 +462,7 @@ async function loadProfileData() {
             historyCard.innerHTML = `
                 <div class="history-poll-question">${poll.question}</div>
                 <div class="history-vote-choice">
-                    <span class="choice-label">Your choice:</span>
+                    <span class="choice-label">${isOwnProfile ? 'Your' : 'Their'} choice:</span>
                     <span class="choice-text">${option.optionText}</span>
                 </div>
                 <div class="history-date">Voted on ${new Date(vote.votedAt).toLocaleDateString()}</div>

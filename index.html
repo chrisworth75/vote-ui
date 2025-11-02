@@ -40,9 +40,15 @@
 
         <!-- Profile Section -->
         <div id="profile-section" style="display: none;">
-            <h2>My Profile</h2>
+            <div class="profile-header">
+                <h2 id="profile-title">My Profile</h2>
+                <div class="user-search-container">
+                    <input type="text" id="user-search" placeholder="Search for users..." autocomplete="off">
+                    <div id="search-results" class="search-results" style="display: none;"></div>
+                </div>
+            </div>
             <div id="profile-stats" class="profile-stats"></div>
-            <h3>My Voting History</h3>
+            <h3 id="voting-history-title">My Voting History</h3>
             <div id="voting-history"></div>
         </div>
     </div>
